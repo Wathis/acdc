@@ -1,5 +1,13 @@
+package model;
+
+import lombok.Builder;
+import lombok.Data;
+
 import java.util.List;
 
+
+@Data
+@Builder
 public class VCFFile {
 	
 	protected String fileFormat;
@@ -12,5 +20,7 @@ public class VCFFile {
 	protected List<VCFFormat> formats;
 	protected List<VCFFilter> filters;
 	protected List<VCFBody> body;
-	
+
+
+
 }

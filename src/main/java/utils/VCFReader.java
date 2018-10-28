@@ -90,6 +90,14 @@ public class VCFReader {
 		List<VCFBody> vcfBodies = new LinkedList<>();
 		while (iterator.hasNext()) {
 			VariantContext next = iterator.next();
+			VCFBody vcfBody = VCFBody.builder()
+					.id(next.getID())
+					.chrom(next.getContig())
+					.pos(next.getStart())
+					.filters(next.getFilters())
+					.qual(next.getPhredScaledQual())
+					.build();
+			vcfBodies.add(vcfBody);
 		}
 		return vcfBodies;
 	}

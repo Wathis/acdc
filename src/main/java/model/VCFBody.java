@@ -4,21 +4,22 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+import java.util.Set;
+
 @Data
 @Builder
 public class VCFBody {
 	
 	protected String chrom;
-	protected String pos;
+	protected int pos;
 	protected String id;
 	protected String ref;
 	protected String alt;
-	protected String qual;
-	protected String filter;
+	protected double qual;
 	protected String info;
 	protected String format;
-	protected String NA00001;
-	protected String NA00002;
-	protected String NA00003;
+	protected Set<String> filters;
+	List<VCFGenotype> genotypes;
 	
 }

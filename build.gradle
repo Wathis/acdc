@@ -12,8 +12,9 @@ repositories {
 }
 
 dependencies {
-    // https://mvnrepository.com/artifact/com.github.samtools/htsjdk
+    compile 'org.hibernate:hibernate-core:5.3.7.Final'
     compile group: 'com.github.samtools', name: 'htsjdk', version: '2.1.1'
+    compile 'mysql:mysql-connector-java:5.1.13'
     testCompile 'junit:junit:4.12'
     compileOnly 'org.projectlombok:lombok:1.18.2'
 }

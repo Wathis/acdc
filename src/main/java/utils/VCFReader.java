@@ -1,5 +1,6 @@
 package utils;
 
+import htsjdk.variant.variantcontext.CommonInfo;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.*;
 import model.*;
@@ -31,6 +32,7 @@ public class VCFReader {
 				.filters(extractFilters(fileReader.getFileHeader()))
 				.infos(extractInfos(fileReader.getFileHeader()))
 				.formats(extractFormats(fileReader.getFileHeader()))
+				.contigs(extractContig(fileReader.getFileHeader()))
 				.body(extractBody(fileReader))
 				.build();
 	}
@@ -50,6 +52,23 @@ public class VCFReader {
 		}
 		return filters;
 	}
+
+	private List<VCFContig> extractContig(VCFHeader fileHeader) {
+		List<VCFContigHeaderLine> contigsHeaderLines = fileHeader.getContigLines();
+		List<VCFContig> contigs = new LinkedList<>();
+		Iterator<VCFContigHeaderLine> iterator = contigsHeaderLines.iterator();
+		while (iterator.hasNext()) {
+			VCFContigHeaderLine next = iterator.next();
+			VCFContig vcfContig = VCFContig.builder()
+					.ID(next.getID())
+					.length(next.getContigIndex())
+					.assembly(next.getSAMSequenceRecord().getAssembly())
+					.build();
+			contigs.add(vcfContig);
+		}
+		return contigs;
+	}
+
 
 	private List<VCFInfo> extractInfos(VCFHeader fileHeader) {
 		Collection<VCFInfoHeaderLine> filterHeaderLines = fileHeader.getInfoHeaderLines();
@@ -90,12 +109,23 @@ public class VCFReader {
 		List<VCFBody> vcfBodies = new LinkedList<>();
 		while (iterator.hasNext()) {
 			VariantContext next = iterator.next();
+			String info = "";
+			CommonInfo commonInfo = next.getCommonInfo();
+			for (String key : commonInfo.getAttributes().keySet()) {
+				info += key + "=" + commonInfo.getAttribute(key)+ ";";
+			}
+
 			VCFBody vcfBody = VCFBody.builder()
-					.id(next.getID())
 					.chrom(next.getContig())
 					.pos(next.getStart())
-					.filters(next.getFilters())
+					.id(next.getID())
+					.ref(next.getReference().toString())
+					.alt(next.getAlternateAlleles().toString())
 					.qual(next.getPhredScaledQual())
+					.filters(next.getFilters())
+					.info(info)
+					.format(null)
+					.genotypes(null)
 					.build();
 			vcfBodies.add(vcfBody);
 		}

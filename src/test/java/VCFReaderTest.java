@@ -1,9 +1,9 @@
+import model.VCFChild;
 import model.VCFFile;
-import model.VCFTest;
+import model.VCFParent;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -12,8 +12,8 @@ import org.junit.Test;
 import utils.VCFReader;
 
 import java.net.URISyntaxException;
-import java.util.Iterator;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class VCFReaderTest {
 
@@ -42,10 +42,10 @@ public class VCFReaderTest {
             sessionFactory = new MetadataSources( registry ).buildMetadata().buildSessionFactory();
             session = sessionFactory.openSession();
             session.beginTransaction();
-            session.save( new VCFTest("Mathis"));
+            session.save( new VCFParent("Mathis", Arrays.asList(new VCFChild("Child 1"),new VCFChild("Child 2"))));
             session.getTransaction().commit();
-            VCFTest vcfTest = (VCFTest) session.createQuery("FROM VCFTest").getSingleResult();
-            Assert.assertTrue("Mathis".equals(vcfTest.getEncryptedField()));
+            VCFParent vcfParent = (VCFParent) session.createQuery("FROM VCFParent").getSingleResult();
+            Assert.assertTrue("Mathis".equals(vcfParent.getEncryptedField()));
         } catch (HibernateException e) {
             e.printStackTrace();
         } catch (Exception e) {

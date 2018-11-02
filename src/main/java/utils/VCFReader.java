@@ -1,6 +1,8 @@
 package utils;
 
 import htsjdk.variant.variantcontext.CommonInfo;
+import htsjdk.variant.variantcontext.GenotypesContext;
+import htsjdk.variant.variantcontext.LazyGenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.*;
 import model.*;
@@ -9,10 +11,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class VCFReader {
 
@@ -28,6 +28,7 @@ public class VCFReader {
 		URL resource = VCFReader.class.getResource(filename);
 		File file = new File(resource.toURI());
 		VCFFileReader fileReader = new VCFFileReader(file,false);
+		VCFHeader header = fileReader.getFileHeader();
 		return VCFFile.builder()
 				.filters(extractFilters(fileReader.getFileHeader()))
 				.infos(extractInfos(fileReader.getFileHeader()))
@@ -59,10 +60,14 @@ public class VCFReader {
 		Iterator<VCFContigHeaderLine> iterator = contigsHeaderLines.iterator();
 		while (iterator.hasNext()) {
 			VCFContigHeaderLine next = iterator.next();
+			String genericFields = next.toString();
+			genericFields = genericFields.replace("contig=<","").replace(">","");
+			HashMap<String, String> map = (HashMap<String, String>) Arrays.asList(genericFields.split(",")).stream()
+					.map(s -> s.split("=")).collect(Collectors.toMap(e -> e[0], e -> e[1]));
 			VCFContig vcfContig = VCFContig.builder()
-					.ID(next.getID())
-					.length(next.getContigIndex())
-					.assembly(next.getSAMSequenceRecord().getAssembly())
+					.ID(map.get("ID"))
+					.length(Integer.parseInt(map.get("length")))
+					.assembly(map.get("assembly"))
 					.build();
 			contigs.add(vcfContig);
 		}
@@ -109,10 +114,26 @@ public class VCFReader {
 		List<VCFBody> vcfBodies = new LinkedList<>();
 		while (iterator.hasNext()) {
 			VariantContext next = iterator.next();
+			//Extract Info
 			String info = "";
 			CommonInfo commonInfo = next.getCommonInfo();
 			for (String key : commonInfo.getAttributes().keySet()) {
 				info += key + "=" + commonInfo.getAttribute(key)+ ";";
+			}
+			//Extract genotypes
+			LazyGenotypesContext genotypesContext = (LazyGenotypesContext) next.getGenotypes();
+			String unparsedGenotypeData = (String) genotypesContext.getUnparsedGenotypeData();
+			List<String> datas = Arrays.asList(unparsedGenotypeData.split("\t"));
+			List<String> names = genotypesContext.getSampleNamesOrderedByName();
+			String format = datas.get(0);
+			int i = 1;
+			List<VCFGenotype> genotypes = new LinkedList<>();
+			for (String name : names) {
+				genotypes.add(VCFGenotype.builder()
+						.name(name)
+						.data(datas.get(i))
+						.build());
+				i++;
 			}
 
 			VCFBody vcfBody = VCFBody.builder()
@@ -120,12 +141,14 @@ public class VCFReader {
 					.pos(next.getStart())
 					.id(next.getID())
 					.ref(next.getReference().toString())
-					.alt(next.getAlternateAlleles().toString())
+					.alt(next.getAlternateAlleles().toString()
+							.replace("[","")
+							.replace("]",""))
 					.qual(next.getPhredScaledQual())
 					.filters(next.getFilters())
 					.info(info)
-					.format(null)
-					.genotypes(null)
+					.format(format)
+					.genotypes(genotypes)
 					.build();
 			vcfBodies.add(vcfBody);
 		}

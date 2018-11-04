@@ -15,8 +15,14 @@
         <property name="hibernate.dialect">org.hibernate.dialect.MySQL57Dialect</property>
 
         <!-- Mapping -->
-        <mapping class="model.VCFParent"/>
-        <mapping class="model.VCFChild"/>
+        <mapping class="model.VCFFile"/>
+        <mapping class="model.VCFBody"/>
+        <mapping class="model.VCFFilter"/>
+        <mapping class="model.VCFFormat"/>
+        <mapping class="model.VCFGenotype"/>
+        <mapping class="model.VCFContig"/>
+        <mapping class="model.VCFAlt"/>
+        <mapping class="model.VCFInfo"/>
 
     </session-factory>
 

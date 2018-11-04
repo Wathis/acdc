@@ -1,14 +1,13 @@
-package utils;
+package io;
 
 import htsjdk.variant.variantcontext.CommonInfo;
-import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.LazyGenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.*;
 import model.*;
+import utils.HashUtil;
 
 import java.io.File;
-import java.io.FileReader;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
@@ -30,6 +29,7 @@ public class VCFReader {
 		VCFFileReader fileReader = new VCFFileReader(file,false);
 		VCFHeader header = fileReader.getFileHeader();
 		return VCFFile.builder()
+				.watermark(HashUtil.sha256File(file.getPath()))
 				.filters(extractFilters(fileReader.getFileHeader()))
 				.infos(extractInfos(fileReader.getFileHeader()))
 				.formats(extractFormats(fileReader.getFileHeader()))
@@ -47,7 +47,7 @@ public class VCFReader {
 		while (iterator.hasNext()) {
 			VCFFilterHeaderLine next = iterator.next();
 			VCFFilter vcfFilter = new VCFFilter();
-			vcfFilter.setId(next.getID());
+			vcfFilter.setID(next.getID());
 			//vcfFilter.setDescription(next.getDescription());
 			filters.add(vcfFilter);
 		}
@@ -82,7 +82,7 @@ public class VCFReader {
 		while (iterator.hasNext()) {
 			VCFInfoHeaderLine next = iterator.next();
 			VCFInfo vcfInfo = new  VCFInfo();
-			vcfInfo.setId(next.getID());
+			vcfInfo.setID(next.getID());
 			vcfInfo.setNumber(next.getCountType());
 			vcfInfo.setDescription(next.getDescription());
 			vcfInfo.setType(next.getType());
@@ -100,7 +100,7 @@ public class VCFReader {
 		while (iterator.hasNext()) {
 			VCFFormatHeaderLine next = iterator.next();
 			VCFFormat vcfFormat = new  VCFFormat();
-			vcfFormat.setId(next.getID());
+			vcfFormat.setID(next.getID());
 			vcfFormat.setNumber(next.getCountType());
 			vcfFormat.setDescription(next.getDescription());
 			vcfFormat.setType(next.getType());
@@ -135,17 +135,19 @@ public class VCFReader {
 						.build());
 				i++;
 			}
-
+			String ID = next.getID();
 			VCFBody vcfBody = VCFBody.builder()
 					.chrom(next.getContig())
 					.pos(next.getStart())
-					.id(next.getID())
+					.ID(next.getID())
 					.ref(next.getReference().toString())
 					.alt(next.getAlternateAlleles().toString()
 							.replace("[","")
 							.replace("]",""))
 					.qual(next.getPhredScaledQual())
-					.filters(next.getFilters())
+					.filters(next.getFilters().toString()
+							.replace("[","")
+							.replace("]",""))
 					.info(info)
 					.format(format)
 					.genotypes(genotypes)

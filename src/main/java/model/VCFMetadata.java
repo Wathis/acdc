@@ -6,10 +6,12 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import javax.persistence.MappedSuperclass;
+
 @Data
 @NoArgsConstructor
+@MappedSuperclass
 public abstract class VCFMetadata {
-
-	protected String id;
+	protected String ID;
 	protected String description;
 }

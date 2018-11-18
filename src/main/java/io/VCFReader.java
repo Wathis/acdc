@@ -27,7 +27,6 @@ public class VCFReader {
 		URL resource = VCFReader.class.getResource(filename);
 		File file = new File(resource.toURI());
 		VCFFileReader fileReader = new VCFFileReader(file,false);
-		VCFHeader header = fileReader.getFileHeader();
 		return VCFFile.builder()
 				.watermark(HashUtil.sha256File(file.getPath()))
 				.filters(extractFilters(fileReader.getFileHeader()))
@@ -61,9 +60,7 @@ public class VCFReader {
 		while (iterator.hasNext()) {
 			VCFContigHeaderLine next = iterator.next();
 			String genericFields = next.toString();
-			genericFields = genericFields.replace("contig=<","").replace(">","");
-			HashMap<String, String> map = (HashMap<String, String>) Arrays.asList(genericFields.split(",")).stream()
-					.map(s -> s.split("=")).collect(Collectors.toMap(e -> e[0], e -> e[1]));
+			HashMap<String, String> map = genericFieldsStringToMap(genericFields);
 			VCFContig vcfContig = VCFContig.builder()
 					.ID(map.get("ID"))
 					.length(Integer.parseInt(map.get("length")))
@@ -74,6 +71,14 @@ public class VCFReader {
 		return contigs;
 	}
 
+	public static HashMap<String,String> genericFieldsStringToMap(String genericFields) {
+		genericFields = genericFields.replace("contig=<","").replace(">","");
+		List<String> genericFiedsParts = Arrays.asList(genericFields.split(","));
+		HashMap<String, String> map = (HashMap<String, String>) genericFiedsParts.stream()
+				.map(s -> s.split("=")).collect(Collectors.toMap(e -> e[0], e -> e[1]));
+		return map;
+	}
+
 
 	private List<VCFInfo> extractInfos(VCFHeader fileHeader) {
 		Collection<VCFInfoHeaderLine> filterHeaderLines = fileHeader.getInfoHeaderLines();
@@ -81,13 +86,13 @@ public class VCFReader {
 		Iterator<VCFInfoHeaderLine> iterator = filterHeaderLines.iterator();
 		while (iterator.hasNext()) {
 			VCFInfoHeaderLine next = iterator.next();
-			VCFInfo vcfInfo = new  VCFInfo();
-			vcfInfo.setID(next.getID());
-			vcfInfo.setNumber(next.getCountType());
-			vcfInfo.setDescription(next.getDescription());
-			vcfInfo.setType(next.getType());
-			vcfInfo.setSource(null);
-			vcfInfo.setVersion(null);
+			VCFInfo vcfInfo = new VCFInfo();
+				vcfInfo.setID(next.getID());
+				vcfInfo.setNumber(next.getCountType());
+				vcfInfo.setDescription(next.getDescription());
+				vcfInfo.setType(next.getType());
+				vcfInfo.setSource(null);
+				vcfInfo.setVersion(null);
 			infos.add(vcfInfo);
 		}
 		return infos;
@@ -114,12 +119,7 @@ public class VCFReader {
 		List<VCFBody> vcfBodies = new LinkedList<>();
 		while (iterator.hasNext()) {
 			VariantContext next = iterator.next();
-			//Extract Info
-			String info = "";
-			CommonInfo commonInfo = next.getCommonInfo();
-			for (String key : commonInfo.getAttributes().keySet()) {
-				info += key + "=" + commonInfo.getAttribute(key)+ ";";
-			}
+			String info = extractInfo(next);
 			//Extract genotypes
 			LazyGenotypesContext genotypesContext = (LazyGenotypesContext) next.getGenotypes();
 			String unparsedGenotypeData = (String) genotypesContext.getUnparsedGenotypeData();
@@ -135,7 +135,6 @@ public class VCFReader {
 						.build());
 				i++;
 			}
-			String ID = next.getID();
 			VCFBody vcfBody = VCFBody.builder()
 					.chrom(next.getContig())
 					.pos(next.getStart())
@@ -156,5 +155,14 @@ public class VCFReader {
 		}
 		return vcfBodies;
 	}
-	
+
+	private String extractInfo(VariantContext next) {
+		String info = "";
+		CommonInfo commonInfo = next.getCommonInfo();
+		for (String key : commonInfo.getAttributes().keySet()) {
+			info += key + "=" + commonInfo.getAttribute(key)+ ";";
+		}
+		return info;
+	}
+
 }

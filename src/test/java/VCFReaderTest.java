@@ -1,14 +1,10 @@
 import model.VCFFile;
 import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.boot.MetadataSources;
-import org.hibernate.boot.registry.StandardServiceRegistry;
-import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.query.Query;
 import org.junit.Assert;
 import org.junit.Test;
 import io.VCFReader;
+import session.VCFSession;
 import utils.HashUtil;
 
 import java.io.File;
@@ -19,8 +15,6 @@ import java.util.List;
 import static junit.framework.TestCase.fail;
 
 public class VCFReaderTest {
-
-    SessionFactory sessionFactory;
 
     @Test
     public void test01LoadFile() {
@@ -37,30 +31,22 @@ public class VCFReaderTest {
 
     @Test
     public void test02Hibernate() {
-        Session session = null;
-        final StandardServiceRegistry registry = new StandardServiceRegistryBuilder()
-                .configure() // configures settings from hibernate.cfg.xml
-                .build();
         try {
-            sessionFactory = new MetadataSources( registry ).buildMetadata().buildSessionFactory();
-            session = sessionFactory.openSession();
-            session.beginTransaction();
             VCFReader reader = VCFReader.getSharedInstance();
+            VCFSession vcfSession = VCFSession.getSharedInstance();
+            vcfSession.open();
             VCFFile vcfFile = reader.loadVCFFile("vcfFile.vcf");
-            session.save(vcfFile);
-            session.getTransaction().commit();
-            Query query = session.createQuery("FROM VCFFile");
+            vcfSession.save(vcfFile);
+            Query query = vcfSession.getSession().createQuery("FROM VCFFile");
             List resultList = query.getResultList();
             Assert.assertTrue(resultList.size() > 0);
+            vcfSession.close();
         } catch (HibernateException e) {
             e.printStackTrace();
             fail("Fail due to : " + e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             fail("Fail due to : " + e.getMessage());
-        } finally {
-            if (session != null)
-                session.close();
         }
     }
 

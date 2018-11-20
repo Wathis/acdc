@@ -13,16 +13,27 @@ import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Classe permettant de parser un fichier VCF. Utilisation de la librairie htsjdk
+ * Accès par singleton
+ */
 public class VCFReader {
 
 	private static VCFReader sharedInstance = new VCFReader();
 
 	private VCFReader() {}
 
+	/**
+	 * Singleton permettant d'accéder au VCFReader
+	 */
 	public static VCFReader getSharedInstance() {
 		return sharedInstance;
 	}
 
+	/**
+	 * Permet de convertir un fichier VCF en objet VCFFile
+	 * @param filename nom du fichier à lire
+	 */
 	public VCFFile loadVCFFile(String filename) throws URISyntaxException {
 		URL resource = VCFReader.class.getResource(filename);
 		File file = new File(resource.toURI());
@@ -37,8 +48,12 @@ public class VCFReader {
 				.build();
 	}
 
+	/**
+	 * Permet d'extraire les filtres d'un header de fichier vcf
+	 * @param fileHeader
+	 * @return Une liste de filtres
+	 */
 	private List<VCFFilter> extractFilters(VCFHeader fileHeader) {
-
 		List<VCFFilterHeaderLine> filterHeaderLines = fileHeader.getFilterLines();
 		List<VCFFilter> filters = new LinkedList<>();
 
@@ -47,12 +62,16 @@ public class VCFReader {
 			VCFFilterHeaderLine next = iterator.next();
 			VCFFilter vcfFilter = new VCFFilter();
 			vcfFilter.setID(next.getID());
-			//vcfFilter.setDescription(next.getDescription());
 			filters.add(vcfFilter);
 		}
 		return filters;
 	}
 
+	/**
+	 * Permet d'extraire les lignes contig d'un header de fichier vcf
+	 * @param fileHeader
+	 * @return Une liste de contig
+	 */
 	private List<VCFContig> extractContig(VCFHeader fileHeader) {
 		List<VCFContigHeaderLine> contigsHeaderLines = fileHeader.getContigLines();
 		List<VCFContig> contigs = new LinkedList<>();
@@ -71,15 +90,10 @@ public class VCFReader {
 		return contigs;
 	}
 
-	public static HashMap<String,String> genericFieldsStringToMap(String genericFields) {
-		genericFields = genericFields.replace("contig=<","").replace(">","");
-		List<String> genericFiedsParts = Arrays.asList(genericFields.split(","));
-		HashMap<String, String> map = (HashMap<String, String>) genericFiedsParts.stream()
-				.map(s -> s.split("=")).collect(Collectors.toMap(e -> e[0], e -> e[1]));
-		return map;
-	}
-
-
+	/**
+	 * Permet d'extraire les infos depuis le header d'un fichier VCF
+	 * @param fileHeader
+	 */
 	private List<VCFInfo> extractInfos(VCFHeader fileHeader) {
 		Collection<VCFInfoHeaderLine> filterHeaderLines = fileHeader.getInfoHeaderLines();
 		List<VCFInfo> infos = new LinkedList<>();
@@ -98,6 +112,10 @@ public class VCFReader {
 		return infos;
 	}
 
+	/**
+	 * Permet d'extraire le format depuis le header d'un fichier VCF
+	 * @param fileHeader
+	 */
 	private List<VCFFormat> extractFormats(VCFHeader fileHeader) {
 		Collection<VCFFormatHeaderLine> formatHeaderLines = fileHeader.getFormatHeaderLines();
 		List<VCFFormat> vcfFormats = new LinkedList<>();
@@ -114,6 +132,10 @@ public class VCFReader {
 		return vcfFormats;
 	}
 
+	/**
+	 * Permet d'extraire le body et chaque ligne de données du fichier VCF
+	 * @param fileReader Le file reader de la librairie htsjdk
+	 */
 	private List<VCFBody> extractBody(VCFFileReader fileReader) {
 		Iterator<VariantContext> iterator = fileReader.iterator();
 		List<VCFBody> vcfBodies = new LinkedList<>();
@@ -156,6 +178,10 @@ public class VCFReader {
 		return vcfBodies;
 	}
 
+	/**
+	 * Permet d'extraire l'attribut INFO de chaque ligne du body
+	 * @param next est une ligne du body
+	 */
 	private String extractInfo(VariantContext next) {
 		String info = "";
 		CommonInfo commonInfo = next.getCommonInfo();
@@ -163,6 +189,19 @@ public class VCFReader {
 			info += key + "=" + commonInfo.getAttribute(key)+ ";";
 		}
 		return info;
+	}
+
+	/**
+	 * Permet de convertir les generics fields en une HashMap
+	 * ( Ex generic fields : contig=<ID=1,length=249250621,assembly=b37> )
+	 * @param genericFields
+	 */
+	public static HashMap<String,String> genericFieldsStringToMap(String genericFields) {
+		genericFields = genericFields.replace("contig=<","").replace(">","");
+		List<String> genericFiedsParts = Arrays.asList(genericFields.split(","));
+		HashMap<String, String> map = (HashMap<String, String>) genericFiedsParts.stream()
+				.map(s -> s.split("=")).collect(Collectors.toMap(e -> e[0], e -> e[1]));
+		return map;
 	}
 
 }

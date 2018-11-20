@@ -9,7 +9,7 @@ import org.hibernate.annotations.ColumnTransformer;
 import javax.persistence.*;
 import java.util.List;
 
-import static utils.AESUtils.AES_SECRET_KEY;
+import static utils.AESUtil.AES_SECRET_KEY;
 
 
 @Data

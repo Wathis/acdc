@@ -11,8 +11,7 @@
 
 * Avoir MySQL
 * Avoir sa base avec le moteur FEDERATED [(Activer le moteur FEDERATED dans sa base de données)](#db_federated)
-* Avoir créé trois bases de données : acdc, acdc\_server\_one, acdc\_server\_two. 
-* Executer les scripts SQL dans mysql présents dans le dossier scripts/ après avoir lu les instructions dans scripts/script\_acdc\_local.sql
+* Executer le script SQL (scripts/acdc_database_creation_script.sql) dans votre serveur mysql 
 
 ### Activer le moteur federated dans sa base de données
 <a name="db_federated"></a>

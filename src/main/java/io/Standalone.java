@@ -30,9 +30,11 @@ public class Standalone {
             vcfSession.open();
             filepath = args[0];
         }
+        System.out.println("[I] Database session opened");
         VCFFile vcfFile = extractVCFFile(filepath);
         insertFileInDatabase(vcfSession,vcfFile);
         vcfSession.close();
+        System.out.println("[I] Database session closed");
         System.exit(0);
     }
 
@@ -40,7 +42,7 @@ public class Standalone {
         try {
             System.out.println("[I] Saving datas");
             vcfSession.save(file);
-            System.out.println("[I] Success saving to database");
+            System.out.println("[I] Saving in database succeed");
         } catch (UnopenedSession unopenedSession) {
             unopenedSession.printStackTrace();
         }
@@ -52,7 +54,7 @@ public class Standalone {
         VCFFile vcfFile = null;
         try {
             vcfFile = reader.loadVCFFile(new File(filepath));
-            System.out.println("[I] Success extracting");
+            System.out.println("[I] Extracting succeed");
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }

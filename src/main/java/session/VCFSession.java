@@ -14,7 +14,7 @@ import org.hibernate.cfg.Configuration;
  */
 public class VCFSession {
 
-    private SessionFactory sessionFactory;
+    private SessionFactory sessionFactory = null;
     private Session session = null;
     private static VCFSession sharedInstance;
 
@@ -92,6 +92,7 @@ public class VCFSession {
      */
     public void close() {
         session.close();
+        sessionFactory.close();
     }
 
 }

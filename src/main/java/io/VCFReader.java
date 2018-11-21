@@ -32,11 +32,9 @@ public class VCFReader {
 
 	/**
 	 * Permet de convertir un fichier VCF en objet VCFFile
-	 * @param filename nom du fichier à lire
+	 * @param file fichier a lire
 	 */
-	public VCFFile loadVCFFile(String filename) throws URISyntaxException {
-		URL resource = VCFReader.class.getResource(filename);
-		File file = new File(resource.toURI());
+	public VCFFile loadVCFFile(File file) throws URISyntaxException {
 		VCFFileReader fileReader = new VCFFileReader(file,false);
 		return VCFFile.builder()
 				.watermark(HashUtil.sha256File(file.getPath()))

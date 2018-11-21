@@ -16,12 +16,23 @@ import static junit.framework.TestCase.fail;
 
 public class VCFReaderTest {
 
+    public File getVCFFile() {
+        URL resource = VCFReader.class.getResource("vcfFile.vcf");
+        File file = null;
+        try {
+            file = new File(resource.toURI());
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return file;
+    }
+
     @Test
     public void test01LoadFile() {
         VCFReader reader = VCFReader.getSharedInstance();
         VCFFile vcfFile = null;
         try {
-            vcfFile = reader.loadVCFFile("vcfFile.vcf");
+            vcfFile = reader.loadVCFFile(getVCFFile());
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
@@ -35,7 +46,7 @@ public class VCFReaderTest {
             VCFReader reader = VCFReader.getSharedInstance();
             VCFSession vcfSession = VCFSession.getSharedInstance();
             vcfSession.open();
-            VCFFile vcfFile = reader.loadVCFFile("vcfFile.vcf");
+            VCFFile vcfFile = reader.loadVCFFile(getVCFFile());
             vcfSession.save(vcfFile);
             Query query = vcfSession.getSession().createQuery("FROM VCFFile");
             List resultList = query.getResultList();

@@ -7,9 +7,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
-
-import static com.sun.tools.internal.ws.wsdl.parser.Util.fail;
-
+import org.hibernate.cfg.Configuration;
 /**
  * Session permettant de sauvegarder un objet et d'accéder à la base de données.
  * Accès a la classe par singleton
@@ -59,6 +57,20 @@ public class VCFSession {
     }
 
     /**
+     * Ouvrir une session avec différents identifiants que ceux par défaut
+     * @param username
+     * @param password
+     */
+    public void open(String username, String password) {
+        Configuration cfg = new Configuration();
+        cfg.configure("hibernate.cfg.xml"); //hibernate config xml file name
+        cfg.getProperties().setProperty("hibernate.connection.password",password);
+        cfg.getProperties().setProperty("hibernate.connection.username",username);
+        sessionFactory = cfg.buildSessionFactory();
+        open();
+    }
+
+    /**
      * Ouvrir la connexion à la base de données
      */
     public void open() {
@@ -66,11 +78,12 @@ public class VCFSession {
                 .configure() // configures settings from hibernate.cfg.xml
                 .build();
         try {
-            sessionFactory = new MetadataSources( registry ).buildMetadata().buildSessionFactory();
+            if (sessionFactory == null)
+                sessionFactory = new MetadataSources( registry ).buildMetadata().buildSessionFactory();
             session = sessionFactory.openSession();
         } catch (HibernateException e) {
             e.printStackTrace();
-            fail("Fail due to : " + e.getMessage());
+            System.out.println("Fail due to : " + e.getMessage());
         }
     }
 

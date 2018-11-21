@@ -9,6 +9,7 @@
 # /!\ CHANGER UNIQUEMENT : user:pass@host:port               #
 # /!\ CONSEIL : Utiliser un Search and Replace               #
 # /!\ EXECUTER auparavant script_acdc_server_one.sql et      #
+# /!\ EXECUTER auparavant script_acdc_server_one.sql et      #
 #     script_acdc_server_two.sql                             #
 ##############################################################
 

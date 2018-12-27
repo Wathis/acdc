@@ -1,6 +1,8 @@
 package utils;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
@@ -19,8 +21,11 @@ public class HashUtil {
     public static String sha256File(String filePath) {
         byte[] hash = null;
         try {
-            byte[] b = Files.readAllBytes(Paths.get(filePath));
-            hash = MessageDigest.getInstance("SHA-256").digest(b);
+            String b = new String(Files.readAllBytes(Paths.get(filePath)),
+                    StandardCharsets.UTF_8);
+            MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+            sha256.update(b.getBytes("UTF-8"));
+            hash = sha256.digest();
         } catch (IOException e) {
             e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {

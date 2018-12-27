@@ -73,5 +73,4 @@ public class VCFReaderTest {
             fail(e.getMessage());
         }
     }
-
 }
